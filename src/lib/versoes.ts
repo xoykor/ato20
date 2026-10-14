@@ -71,6 +71,23 @@ export type Versao = {
  */
 export const VERSOES: Versao[] = [
   {
+    versao: "1.6.0",
+    data: "2026-10-14",
+    mudancas: [
+      {
+        tipo: "novidade",
+        titulo: {
+          pt: "A mesa funciona à distância por LAN VPN (Tailscale, ZeroTier, Hamachi)",
+          en: "The table works remotely over LAN VPN (Tailscale, ZeroTier, Hamachi)",
+        },
+        detalhe: {
+          pt: "No diálogo de convite, o mestre agora escolhe qual rede quer anunciar: o Wi-Fi da casa, uma VPN ativa (como Tailscale ou ZeroTier) ou um hostname personalizado. O QR Code e os links do convite se atualizam na hora.",
+          en: "In the invite dialog, the GM can now choose which network to announce: local Wi-Fi, an active VPN (such as Tailscale or ZeroTier), or a custom hostname. The QR Code and invite links update instantly.",
+        },
+      },
+    ],
+  },
+  {
     versao: "1.5.1",
     data: "2026-10-13",
     mudancas: [

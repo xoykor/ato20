@@ -29,14 +29,14 @@ celular.
 No Linux, o AppImage roda sem instalar nada:
 
 ```bash
-curl -fL -o ato20.AppImage https://github.com/ato20-org/ato20/releases/download/v1.5.1/ato20_1.5.1_amd64.AppImage && chmod +x ato20.AppImage
+curl -fL -o ato20.AppImage https://github.com/ato20-org/ato20/releases/download/v1.6.0/ato20_1.6.0_amd64.AppImage && chmod +x ato20.AppImage
 ./ato20.AppImage
 ```
 
 No Windows, pelo PowerShell:
 
 ```powershell
-wget https://github.com/ato20-org/ato20/releases/download/v1.5.1/ato20_1.5.1_x64-setup.exe -OutFile ato20-setup.exe
+wget https://github.com/ato20-org/ato20/releases/download/v1.6.0/ato20_1.6.0_x64-setup.exe -OutFile ato20-setup.exe
 .\ato20-setup.exe
 ```
 
@@ -143,6 +143,7 @@ repetindo antes de acreditar.
 | [Retratos de personagem](docs/retratos.md) | O retrato preso à câmera, e o retrato ao vivo |
 | [Plugins](docs/extensoes.md) | Temas, plugins de funcionalidade e a API |
 | [Desenvolvimento](docs/desenvolvimento.md) | Rodar, medir, como está construído, testes |
+| [Jogando via VPN](docs/vpn.md) | Como jogar à distância com Tailscale, ZeroTier ou Hamachi |
 | [Empacotar](docs/empacotar.md) | Os pacotes, o ícone e o Flatpak |
 
 ## Contribuir

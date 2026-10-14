@@ -100,6 +100,21 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.6.0" date="2026-10-14">
+      <description>
+        <p>
+          ATO20 1.6.0 adds native support for playing remotely over LAN VPN (Tailscale, ZeroTier, Hamachi).
+        </p>
+        <ul>
+          <li>
+            The table works remotely over LAN VPN (Tailscale, ZeroTier, Hamachi).
+            In the invite dialog, the GM can now choose which network to announce:
+            local Wi-Fi, an active VPN, or a custom hostname. The QR Code and
+            invite links update instantly.
+          </li>
+        </ul>
+      </description>
+    </release>
     <release version="1.5.1" date="2026-10-13">
       <description>
         <p>

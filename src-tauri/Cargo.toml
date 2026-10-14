@@ -1,6 +1,6 @@
 [package]
 name = "ato20"
-version = "1.5.1"
+version = "1.6.0"
 description = "Ferramenta para organizar e exibir cenas de RPG de mesa"
 authors = ["valb-mig"]
 license = "MIT"
@@ -148,6 +148,10 @@ sha2 = "0.10"
 # tela de espectador, e servi-la na mesma janela do Mestre tiraria o mestre da
 # mesa dele.
 tauri-plugin-opener = "2.5.5"
+
+# Descobre interfaces de rede locais e virtuais (VPN como Tailscale, ZeroTier, etc.)
+# para permitir conexao na mesa sem depender exclusivamente do Wi-Fi fisico.
+if-addrs = "0.13"
 
 # O aplicativo se atualiza sozinho, e por isso o pacote sai ASSINADO.
 #
