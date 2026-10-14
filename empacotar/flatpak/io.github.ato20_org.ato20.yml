@@ -202,8 +202,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/ato20-org/ato20.git
-        tag: v0.1.4
-        commit: ec81761fdf8a278b9c3dfe62410ec29143a6be0b
+        tag: v1.6.0
+        commit: a5b34f9b4fdb6313d57e01d0383cf0cf66bdeeae
         # O robo do Flathub segue as tags novas por aqui e abre o PR de
         # atualizacao sozinho. `^v([\d.]+)$` casa `v0.1.0` e NAO casaria
         # `v0.0.6-alpha` -- que e mais um motivo de a tag ter perdido o sufixo
