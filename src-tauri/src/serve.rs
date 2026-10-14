@@ -62,6 +62,16 @@ pub struct Evidence {
 }
 
 /// O endereco do daemon, entregue a webview.
+/// Uma interface de rede detectada nesta máquina (Wi-Fi, Ethernet, VPN como Tailscale/ZeroTier).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RedeInterface {
+    pub nome: String,
+    pub ip: String,
+    pub rotulo: String,
+    pub tipo: String, // "local", "vpn", "outro"
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DaemonAddr {
@@ -69,9 +79,12 @@ pub struct DaemonAddr {
     pub url: String,
     /// O mesmo daemon pelo IP da rede local, para a TV e os celulares.
     ///
-    /// `None` quando nao ha rota de rede -- maquina sem Wi-Fi nem cabo. A tela
-    /// diz isso, em vez de mostrar um endereco que nao responderia.
+    /// `None` quando nao ha rota de rede -- maquina sem Wi-Fi nem cabo nem VPN.
     pub lan_url: Option<String>,
+    /// As interfaces de rede ativas encontradas nesta maquina.
+    pub interfaces: Vec<RedeInterface>,
+    /// A porta do daemon.
+    pub port: u16,
     /// Segredo exigido nas rotas que ESCREVEM.
     ///
     /// A porta agora esta na REDE, e nao mais so em loopback: sem o token,
@@ -442,10 +455,14 @@ pub fn spawn(
             });
         })?;
 
+    let interfaces = listar_interfaces_de_rede();
+
     Ok(Started {
         addr: DaemonAddr {
             url: format!("http://127.0.0.1:{port}"),
             lan_url,
+            interfaces,
+            port,
             token,
         },
         evidence,
@@ -478,16 +495,130 @@ fn bind() -> AppResult<TcpListener> {
     }
 }
 
-/// O IP desta maquina na rede local.
+/// Classifica o tipo de interface: "vpn", "local" ou "outro".
+pub fn classificar_interface(nome: &str, ip: &IpAddr) -> &'static str {
+    let nome_lower = nome.to_lowercase();
+    let e_vpn_por_nome = nome_lower.starts_with("tailscale")
+        || nome_lower.starts_with("zt")
+        || nome_lower.starts_with("tun")
+        || nome_lower.starts_with("tap")
+        || nome_lower.starts_with("wg")
+        || nome_lower.starts_with("wireguard")
+        || nome_lower.starts_with("ham")
+        || nome_lower.contains("vpn");
+
+    if let IpAddr::V4(ipv4) = ip {
+        let octets = ipv4.octets();
+        // Tailscale usa a faixa CGNAT RFC 6598: 100.64.0.0/10 (100.64.0.0 a 100.127.255.255)
+        let e_cgnat_tailscale = octets[0] == 100 && (octets[1] & 0xC0) == 64;
+        // Hamachi costuma usar a faixa 25.0.0.0/8
+        let e_hamachi = octets[0] == 25;
+
+        if e_vpn_por_nome || e_cgnat_tailscale || e_hamachi {
+            return "vpn";
+        }
+
+        // Faixas privadas RFC 1918 (LAN local tradicional)
+        let e_privada_local = octets[0] == 10
+            || (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31)
+            || (octets[0] == 192 && octets[1] == 168);
+
+        if e_privada_local {
+            return "local";
+        }
+    }
+
+    if e_vpn_por_nome {
+        "vpn"
+    } else {
+        "outro"
+    }
+}
+
+/// Gera um rótulo legível para a interface.
+pub fn gerar_rotulo_interface(nome: &str, ip: &IpAddr, tipo: &str) -> String {
+    let nome_lower = nome.to_lowercase();
+    let prefixo = if nome_lower.starts_with("tailscale")
+        || (matches!(ip, IpAddr::V4(ipv4) if ipv4.octets()[0] == 100 && (ipv4.octets()[1] & 0xC0) == 64))
+    {
+        "Tailscale"
+    } else if nome_lower.starts_with("zt") {
+        "ZeroTier"
+    } else if nome_lower.starts_with("ham") || (matches!(ip, IpAddr::V4(ipv4) if ipv4.octets()[0] == 25)) {
+        "Hamachi"
+    } else if nome_lower.starts_with("wl")
+        || nome_lower.contains("wi-fi")
+        || nome_lower.contains("wlan")
+        || nome_lower.contains("wireless")
+    {
+        "Wi-Fi"
+    } else if nome_lower.starts_with("eth") || nome_lower.starts_with("en") || nome_lower.contains("ethernet") {
+        "Cabo (Ethernet)"
+    } else if tipo == "vpn" {
+        "VPN"
+    } else if tipo == "local" {
+        "Rede Local"
+    } else {
+        nome
+    };
+
+    format!("{prefixo} ({ip})")
+}
+
+/// Lista todas as interfaces de rede ativas (IPv4 não-loopback) disponíveis nesta máquina.
+pub fn listar_interfaces_de_rede() -> Vec<RedeInterface> {
+    let mut interfaces = Vec::new();
+
+    let Ok(addrs) = if_addrs::get_if_addrs() else {
+        return interfaces;
+    };
+
+    for iface in addrs {
+        let ip = iface.addr.ip();
+        // Apenas IPv4 não-loopback e não-unspecified para conexão direta do celular/TV
+        if ip.is_loopback() || ip.is_unspecified() {
+            continue;
+        }
+
+        let IpAddr::V4(_) = ip else {
+            continue;
+        };
+
+        let tipo = classificar_interface(&iface.name, &ip).to_string();
+        let rotulo = gerar_rotulo_interface(&iface.name, &ip, &tipo);
+
+        interfaces.push(RedeInterface {
+            nome: iface.name,
+            ip: ip.to_string(),
+            rotulo,
+            tipo,
+        });
+    }
+
+    // Ordena: primeiro "local" (Wi-Fi/Ethernet), depois "vpn", depois "outro"
+    interfaces.sort_by(|a, b| {
+        let ordem = |tipo: &str| match tipo {
+            "local" => 0,
+            "vpn" => 1,
+            _ => 2,
+        };
+        ordem(&a.tipo).cmp(&ordem(&b.tipo)).then_with(|| a.nome.cmp(&b.nome))
+    });
+
+    // Remove duplicatas de mesmo IP
+    interfaces.dedup_by(|a, b| a.ip == b.ip);
+
+    interfaces
+}
+
+/// O IP desta máquina na rede local.
 ///
-/// Sem crate de enumeracao de interfaces: abrir um socket UDP e "conectar" a um
-/// endereco roteavel nao envia pacote nenhum, e faz o sistema escolher a
-/// interface de saida pela propria tabela de rotas. E isso que se quer -- a
-/// interface por onde os celulares da casa chegam -- e nao a primeira da lista,
-/// que costuma ser docker ou uma VPN.
+/// Abre um socket UDP e "conecta" a um endereço roteável sem enviar pacote,
+/// fazendo o sistema escolher a interface de saída pela tabela de rotas.
+/// Se não houver conexão default para a internet/gateway da casa, faz fallback
+/// para a primeira interface válida (como uma LAN VPN ativa).
 fn lan_ip() -> Option<IpAddr> {
-    // Dois alvos: um publico, e um privado para o caso de a casa nao ter saida
-    // para a internet. Nenhum dos dois recebe nada.
+    // 1. Tenta a saída padrão da casa via UDP (escolhe o Wi-Fi ou rota default se houver).
     for target in ["1.1.1.1:80", "192.168.0.1:80"] {
         let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
             continue;
@@ -501,6 +632,15 @@ fn lan_ip() -> Option<IpAddr> {
             if !addr.ip().is_loopback() && !addr.ip().is_unspecified() {
                 return Some(addr.ip());
             }
+        }
+    }
+
+    // 2. Fallback: se não houver rota default para a internet nem para 192.168.0.1,
+    // aproveita a primeira interface local ou VPN detectada.
+    let interfaces = listar_interfaces_de_rede();
+    if let Some(primeira) = interfaces.first() {
+        if let Ok(ip) = primeira.ip.parse::<IpAddr>() {
+            return Some(ip);
         }
     }
 
@@ -3933,6 +4073,50 @@ mod tests {
     use super::*;
     use axum::body::to_bytes;
     use axum::http::Request as HttpRequest;
+
+    #[test]
+    fn classifica_interfaces_corretamente() {
+        let ip_tailscale: IpAddr = "100.85.20.10".parse().unwrap();
+        assert_eq!(classificar_interface("tailscale0", &ip_tailscale), "vpn");
+        assert_eq!(classificar_interface("qualquer", &ip_tailscale), "vpn");
+
+        let ip_hamachi: IpAddr = "25.10.20.30".parse().unwrap();
+        assert_eq!(classificar_interface("ham0", &ip_hamachi), "vpn");
+
+        let ip_zerotier: IpAddr = "192.168.192.10".parse().unwrap();
+        assert_eq!(classificar_interface("zt0", &ip_zerotier), "vpn");
+
+        let ip_wifi: IpAddr = "192.168.1.15".parse().unwrap();
+        assert_eq!(classificar_interface("wlan0", &ip_wifi), "local");
+        assert_eq!(classificar_interface("Wi-Fi", &ip_wifi), "local");
+
+        let ip_cabo: IpAddr = "10.0.0.5".parse().unwrap();
+        assert_eq!(classificar_interface("eth0", &ip_cabo), "local");
+
+        let ip_publico: IpAddr = "8.8.8.8".parse().unwrap();
+        assert_eq!(classificar_interface("eth0", &ip_publico), "outro");
+    }
+
+    #[test]
+    fn gera_rotulos_amigaveis() {
+        let ip_tailscale: IpAddr = "100.85.20.10".parse().unwrap();
+        assert_eq!(
+            gerar_rotulo_interface("tailscale0", &ip_tailscale, "vpn"),
+            "Tailscale (100.85.20.10)"
+        );
+
+        let ip_wifi: IpAddr = "192.168.1.15".parse().unwrap();
+        assert_eq!(
+            gerar_rotulo_interface("wlan0", &ip_wifi, "local"),
+            "Wi-Fi (192.168.1.15)"
+        );
+
+        let ip_cabo: IpAddr = "10.0.0.5".parse().unwrap();
+        assert_eq!(
+            gerar_rotulo_interface("eth0", &ip_cabo, "local"),
+            "Cabo (Ethernet) (10.0.0.5)"
+        );
+    }
 
     fn daemon() -> (tempfile::TempDir, Arc<Daemon>, String) {
         let dir = tempfile::tempdir().expect("tempdir");

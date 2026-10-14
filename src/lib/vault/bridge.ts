@@ -145,6 +145,13 @@ export function updaterEmbutido(): Promise<boolean> {
   return updaterPromise;
 }
 
+export type RedeInterface = {
+  nome: string;
+  ip: string;
+  rotulo: string;
+  tipo: "local" | "vpn" | "outro";
+};
+
 export type DaemonAddr = {
   /** Loopback. É por aqui que a janela do Mestre fala com o daemon. */
   url: string;
@@ -155,6 +162,10 @@ export type DaemonAddr = {
    * diz isso, em vez de mostrar um endereço que não responderia.
    */
   lanUrl: string | null;
+  /** As interfaces de rede ativas encontradas nesta máquina. */
+  interfaces?: RedeInterface[];
+  /** A porta do daemon. */
+  port?: number;
   /** Segredo das rotas que escrevem. */
   token: string;
 };
@@ -168,7 +179,11 @@ export type DaemonAddr = {
  */
 let addrPromise: Promise<DaemonAddr> | null = null;
 
-export function daemonAddr(): Promise<DaemonAddr> {
+export function daemonAddr(forcar = false): Promise<DaemonAddr> {
+  if (forcar) {
+    addrPromise = null;
+  }
+
   addrPromise ??= call<DaemonAddr>("daemon_addr").then((addr) => {
     addrConhecido = addr;
     return addr;

@@ -37,10 +37,15 @@ link nem recarregar a aba do dia anterior. Se ela estiver ocupada — uma segund
 aplicativo, ou o processo anterior ainda soltando o socket — cai para uma efêmera: a sessão
 funciona, só custa reler o endereço na tela.
 
-O IP da rede sai de um truque sem dependência: abrir um socket UDP e "conectar" a um
+O IP padrão da rede sai de um truque sem dependência: abrir um socket UDP e "conectar" a um
 endereço roteável não envia pacote nenhum, e faz o sistema escolher a interface de saída
-pela própria tabela de rotas. É essa que se quer — a interface por onde os celulares da
-casa chegam — e não a primeira da lista, que costuma ser docker ou uma VPN.
+pela própria tabela de rotas (priorizando o Wi-Fi ou rota padrão da casa).
+
+Além disso, o daemon enumera as **interfaces de rede ativas** (Wi-Fi, Ethernet e adaptadores
+virtuais de LAN VPN como Tailscale e ZeroTier) e as entrega ao aplicativo. Na tela do Mestre,
+o diálogo "Entrar na mesa" permite alternar entre o Wi-Fi da casa e a VPN (ou digitar um
+hostname/IP personalizado), atualizando o QR Code e os links do convite em tempo real. Ver
+[vpn.md](vpn.md).
 
 ## Uma origem só
 

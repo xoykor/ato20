@@ -94,7 +94,11 @@ async fn em_segundo_plano<T: Send + 'static>(
 /// Onde a webview alcanca o daemon, e com que token escreve.
 #[tauri::command]
 pub fn daemon_addr(state: State<'_, AppState>) -> DaemonAddr {
-    state.daemon.clone()
+    let mut addr = state.daemon.clone();
+    // Atualiza a lista de interfaces no momento da chamada para refletir VPNs
+    // que foram conectadas ou desconectadas com o aplicativo aberto:
+    addr.interfaces = crate::serve::listar_interfaces_de_rede();
+    addr
 }
 
 /// Este pacote sabe se atualizar sozinho.

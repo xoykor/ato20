@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, QrCode, WifiOff } from "lucide-react";
+import { Check, Copy, Globe, QrCode, Shield, WifiOff } from "lucide-react";
 import QRCode from "qrcode";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -19,7 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCampaignStore } from "@/lib/store/use-campaign-store";
-import { daemonAddr } from "@/lib/vault/bridge";
+import { daemonAddr, type RedeInterface } from "@/lib/vault/bridge";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,7 +28,7 @@ import { cn } from "@/lib/utils";
  *
  * Substitui o crachá de convite que existia com o Supabase, e o problema é
  * outro: lá o link era um domínio estável e o que faltava era o código; aqui o
- * endereço é o IP desta máquina na rede local, que ninguém decora.
+ * endereço é o IP desta máquina na rede local (ou na LAN VPN), que ninguém decora.
  *
  * As duas abas resolvem isso de formas diferentes porque os dois aparelhos são
  * diferentes. O CELULAR tem câmera: o QR leva endereço e código de uma vez, e
@@ -42,23 +43,50 @@ import { cn } from "@/lib/utils";
 /** As duas portas da mesa: o celular de quem joga, e a TV que todos veem. */
 type Aba = "jogador" | "espectador";
 
+const CHAVE_STORAGE_ESCOLHA = "ato20:rede-convite:escolha";
+const CHAVE_STORAGE_HOST = "ato20:rede-convite:host";
+
+function normalizarUrl(hostOuIp: string, portaPadrao: number): string {
+  const limpo = hostOuIp.trim();
+  if (!limpo) return "";
+  if (limpo.startsWith("http://") || limpo.startsWith("https://")) {
+    return limpo.replace(/\/+$/, "");
+  }
+  if (limpo.includes(":")) {
+    return `http://${limpo}`;
+  }
+  return `http://${limpo}:${portaPadrao}`;
+}
+
 export function TableInvite() {
   const campaign = useCampaignStore((state) => state.campaign);
   const [lanUrl, setLanUrl] = useState<string | null>(null);
-  // A aba escolhida vira estado porque a descrição do diálogo muda com
-  // ela: o `Tabs` sozinho guardaria a escolha, mas não a conta a quem
-  // está fora dele.
+  const [interfaces, setInterfaces] = useState<RedeInterface[]>([]);
+  const [porta, setPorta] = useState<number>(20200);
+  const [escolhaRede, setEscolhaRede] = useState<string>("auto");
+  const [hostManual, setHostManual] = useState<string>("");
   const [aba, setAba] = useState<Aba>("jogador");
   const [carregado, setCarregado] = useState(false);
 
   useEffect(() => {
     let ativo = true;
 
-    void daemonAddr().then(
-      ({ lanUrl }) => {
+    try {
+      const salva = localStorage.getItem(CHAVE_STORAGE_ESCOLHA);
+      if (salva) setEscolhaRede(salva);
+      const hostSalvo = localStorage.getItem(CHAVE_STORAGE_HOST);
+      if (hostSalvo) setHostManual(hostSalvo);
+    } catch {
+      // Ignora erro de localStorage
+    }
+
+    void daemonAddr(true).then(
+      (info) => {
         if (!ativo) return;
 
-        setLanUrl(lanUrl);
+        setLanUrl(info.lanUrl);
+        setInterfaces(info.interfaces ?? []);
+        if (info.port) setPorta(info.port);
         setCarregado(true);
       },
       () => {
@@ -71,30 +99,55 @@ export function TableInvite() {
     };
   }, []);
 
+  const salvarEscolha = (novaEscolha: string) => {
+    setEscolhaRede(novaEscolha);
+    try {
+      localStorage.setItem(CHAVE_STORAGE_ESCOLHA, novaEscolha);
+    } catch {
+      // Ignora falha de localStorage
+    }
+  };
+
+  const salvarHostManual = (novoHost: string) => {
+    setHostManual(novoHost);
+    try {
+      localStorage.setItem(CHAVE_STORAGE_HOST, novoHost);
+    } catch {
+      // Ignora falha de localStorage
+    }
+  };
+
   if (!campaign || !carregado) return null;
 
-  // Sem rota de rede a mesa não alcança esta máquina, e um endereço que não
-  // responde é pior que dizer o que está faltando.
-  if (!lanUrl) {
-    return (
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
-              <WifiOff className="size-3.5" />
-              Sem rede
-            </span>
-          }
-        />
-        <TooltipContent>
-          <p className="max-w-52">
-            Esta máquina não está numa rede local, então a TV e os celulares não
-            têm como alcançá-la. Conecte o Wi-Fi ou o cabo e reabra o
-            aplicativo.
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    );
+  // Calcula a URL ativa com base na seleção
+  let urlAtiva: string | null = null;
+  let tipoAtivo: "local" | "vpn" | "personalizado" | "outro" = "local";
+
+  if (escolhaRede === "personalizado") {
+    tipoAtivo = "personalizado";
+    if (hostManual.trim()) {
+      urlAtiva = normalizarUrl(hostManual, porta);
+    }
+  } else if (escolhaRede !== "auto") {
+    const iface = interfaces.find((i) => i.ip === escolhaRede);
+    if (iface) {
+      urlAtiva = `http://${iface.ip}:${porta}`;
+      tipoAtivo = iface.tipo as "local" | "vpn" | "outro";
+    }
+  }
+
+  // Se não foi resolvida ainda, cai no lanUrl padrão ou primeira interface disponível
+  if (!urlAtiva) {
+    if (lanUrl) {
+      urlAtiva = lanUrl;
+      const ifaceEquivalente = interfaces.find((i) => lanUrl.includes(i.ip));
+      if (ifaceEquivalente) {
+        tipoAtivo = ifaceEquivalente.tipo as "local" | "vpn" | "outro";
+      }
+    } else if (interfaces.length > 0) {
+      urlAtiva = `http://${interfaces[0].ip}:${porta}`;
+      tipoAtivo = interfaces[0].tipo as "local" | "vpn" | "outro";
+    }
   }
 
   return (
@@ -102,64 +155,119 @@ export function TableInvite() {
       <DialogTrigger
         render={
           <Button variant="ghost" size="sm">
-            <QrCode />
+            {tipoAtivo === "vpn" ? (
+              <Shield className="text-primary size-4" />
+            ) : urlAtiva ? (
+              <QrCode />
+            ) : (
+              <WifiOff className="text-muted-foreground size-4" />
+            )}
             <span className="hidden lg:inline">Entrar na mesa</span>
           </Button>
         }
       />
       <DialogContent className="max-w-sm">
         <DialogTitle>Entrar na mesa</DialogTitle>
-        {/* Uma por aba: o celular tem câmera e um quadrado para apontar, a TV
-            não tem nem uma nem outro -- lá alguém digita o endereço com um
-            controle remoto. Uma frase só serviria a uma das duas e mentiria
-            para a outra.
-
-            E diz o que a tela PEDE, não como o endereço é montado: que o
-            código viaja na URL era resposta para uma pergunta que ninguém faz
-            com o celular na mão. */}
         <DialogDescription>
           {aba === "jogador"
             ? "Aponte a câmera do celular para o quadrado."
             : "Digite este endereço no navegador da TV."}
         </DialogDescription>
 
-        <Tabs
-          value={aba}
-          onValueChange={(valor) => setAba(valor as Aba)}
-          className="min-w-0 gap-3"
-        >
-          <TabsList>
-            <TabsTrigger value="jogador">Jogador</TabsTrigger>
-            <TabsTrigger value="espectador">TV</TabsTrigger>
-          </TabsList>
+        {/* Seletor de interface de rede (Wi-Fi, VPNs como Tailscale/ZeroTier ou host manual) */}
+        {(interfaces.length > 1 || !lanUrl || escolhaRede === "personalizado") && (
+          <div className="flex flex-col gap-2 rounded-lg border bg-muted/40 p-2.5 text-xs">
+            <div className="flex items-center justify-between font-medium text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                {tipoAtivo === "vpn" ? (
+                  <Shield className="size-3.5 text-primary" />
+                ) : (
+                  <Globe className="size-3.5" />
+                )}
+                Rede do convite:
+              </span>
+              {tipoAtivo === "vpn" && (
+                <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                  LAN VPN
+                </span>
+              )}
+            </div>
 
-          <TabsContent value="jogador" className="min-w-0 space-y-3">
-            <Alvo url={`${lanUrl}/jogador?code=${campaign.codigo}`} />
-          </TabsContent>
+            <select
+              value={escolhaRede}
+              onChange={(e) => salvarEscolha(e.target.value)}
+              className="h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              {lanUrl && (
+                <option value="auto">
+                  Padrão do sistema ({lanUrl.replace(/^http:\/\//, "")})
+                </option>
+              )}
+              {interfaces.map((iface) => (
+                <option key={iface.ip} value={iface.ip}>
+                  {iface.rotulo}
+                </option>
+              ))}
+              <option value="personalizado">✏️ Personalizado (Hostname / IP)...</option>
+            </select>
 
-          {/* Sem QR: a TV não tem câmera para apontar para coisa nenhuma. O que
-              acontece ali é alguém digitando o endereço no navegador dela, com
-              um controle remoto — então o que a tela precisa dar é o endereço
-              legível e inteiro, não um quadrado preto.
+            {escolhaRede === "personalizado" && (
+              <div className="space-y-1 pt-1">
+                <Input
+                  placeholder="ex: 100.85.20.10 ou meupc.ts.net"
+                  value={hostManual}
+                  onChange={(e) => salvarHostManual(e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Informe o IP da VPN ou hostname atribuído a este computador.
+                </p>
+              </div>
+            )}
 
-              E sem instrução escrita: a aba se chama TV, mostra um endereço e
-              um botão de copiar. O parágrafo que havia aqui explicava o que os
-              três já dizem. */}
-          <TabsContent value="espectador" className="min-w-0 space-y-3">
-            <Endereco
-              url={`${lanUrl}/espectador?code=${campaign.codigo}`}
-              grande
-            />
-          </TabsContent>
-        </Tabs>
+            {tipoAtivo === "vpn" && (
+              <p className="text-[11px] text-muted-foreground">
+                Os jogadores devem estar conectados à mesma VPN (Tailscale, ZeroTier, Hamachi, etc.).
+              </p>
+            )}
+          </div>
+        )}
 
-        {/* Mais apagado que a tela: é a letra miúda do convite, e quem a
-            procura já parou para ler. A segunda frase fica porque é a única
-            ressalva que muda uma decisão -- quem acha que o código protege a
-            mesa de um vizinho precisa saber que não. */}
+        {urlAtiva ? (
+          <Tabs
+            value={aba}
+            onValueChange={(valor) => setAba(valor as Aba)}
+            className="min-w-0 gap-3"
+          >
+            <TabsList>
+              <TabsTrigger value="jogador">Jogador</TabsTrigger>
+              <TabsTrigger value="espectador">TV</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="jogador" className="min-w-0 space-y-3">
+              <Alvo url={`${urlAtiva}/jogador?code=${campaign.codigo}`} />
+            </TabsContent>
+
+            <TabsContent value="espectador" className="min-w-0 space-y-3">
+              <Endereco
+                url={`${urlAtiva}/espectador?code=${campaign.codigo}`}
+                grande
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Nenhuma rede detectada</p>
+            <p className="mt-1">
+              Selecione <strong>Personalizado</strong> acima e digite o IP ou hostname da sua VPN.
+            </p>
+          </div>
+        )}
+
         <p className="text-muted-foreground/60 border-t pt-3 text-xs">
-          Vale só na mesma rede. O código evita a entrada por acaso, não alguém
-          decidido no seu Wi-Fi.
+          {tipoAtivo === "vpn"
+            ? "Conexão via rede virtual (VPN). O código da sala protege o acesso ao vivo."
+            : "Vale só na mesma rede. O código evita a entrada por acaso, não alguém decidido no seu Wi-Fi."}
         </p>
       </DialogContent>
     </Dialog>
