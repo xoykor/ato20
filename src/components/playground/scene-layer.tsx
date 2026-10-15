@@ -562,6 +562,7 @@ export function SceneLayer({
         <ReguaLayer
           medidores={scene.medidores}
           grid={scene.grid}
+          itens={scene.items}
           selecionadoId={medidorSelecionadoId}
           onMedidorPointerDown={onMedidorPointerDown}
           onAlcaPointerDown={onMedidorAlcaPointerDown}

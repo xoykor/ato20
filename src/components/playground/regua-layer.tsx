@@ -12,6 +12,7 @@ import {
 import {
   SCENE_HEIGHT,
   SCENE_WIDTH,
+  type CanvasItem,
   type Regua,
   type SceneGrid,
 } from "@/types/scene";
@@ -53,6 +54,7 @@ const MARCA_MAIOR_A_CADA = 5;
 export function ReguaLayer({
   medidores,
   grid,
+  itens,
   selecionadoId,
   onMedidorPointerDown,
   onAlcaPointerDown,
@@ -60,6 +62,7 @@ export function ReguaLayer({
   medidores: Regua[];
   /** Sem grade não há metro: quem chama não desenha a camada. */
   grid: SceneGrid;
+  itens?: readonly CanvasItem[];
   selecionadoId?: string | null;
   onMedidorPointerDown?: (event: ReactPointerEvent, medidor: Regua) => void;
   onAlcaPointerDown?: (
@@ -89,6 +92,7 @@ export function ReguaLayer({
           key={medidor.id}
           medidor={medidor}
           grid={grid}
+          itens={itens}
           metro={metro}
           px={px}
           selecionado={medidor.id === selecionadoId}
@@ -111,6 +115,7 @@ export function ReguaLayer({
 type ViewProps = {
   medidor: Regua;
   grid: SceneGrid;
+  itens?: readonly CanvasItem[];
   metro: number;
   px: (valor: number) => number;
   selecionado: boolean;
@@ -119,8 +124,15 @@ type ViewProps = {
 };
 
 function MedidorView(props: ViewProps) {
-  const { medidor, grid, px, selecionado, onPointerDown, onAlcaPointerDown } =
-    props;
+  const {
+    medidor,
+    grid,
+    itens,
+    px,
+    selecionado,
+    onPointerDown,
+    onAlcaPointerDown,
+  } = props;
   const pegavel = onPointerDown
     ? { style: { pointerEvents: "auto" as const, cursor: "move" } }
     : {};
@@ -135,7 +147,7 @@ function MedidorView(props: ViewProps) {
       </g>
 
       <Rotulo
-        texto={rotuloDoMedidor(medidor, grid)}
+        texto={rotuloDoMedidor(medidor, grid, itens)}
         em={pontoDoRotulo(medidor)}
         px={px}
       />

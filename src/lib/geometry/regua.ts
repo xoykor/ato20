@@ -1,46 +1,113 @@
 import { formatarMetros, METROS_POR_QUADRADO } from "@/lib/geometry/grid";
+import {
+  tokensAtingidos,
+  type MoldeDeMagia,
+} from "@/lib/geometry/templates-de-magia";
 import type { Vec } from "@/lib/geometry/transform";
 import {
   ABERTURA_CONE_PADRAO,
+  type CanvasItem,
   type Regua,
   type SceneGrid,
 } from "@/types/scene";
 
 /**
- * O que um medidor mede, em metros, pronto para a etiqueta.
- *
- * Uma função para as quatro formas porque a etiqueta é o mesmo pedaço da
- * camada: quem desenha não quer saber se é raio ou lado, quer o texto.
- *
- * A área sai em metros quadrados porque é isso que a régua de área responde:
- * "essa sala tem quanto de chão" e "a explosão pega quantos quadrados" são a
- * mesma pergunta com unidade diferente, e o quadrado vale um metro quadrado.
- * Ver `METROS_POR_QUADRADO`.
+ * Converte uma régua em molde de magia geométrico para cálculo de colisão com tokens.
  */
-export function rotuloDoMedidor(medidor: Regua, grid: SceneGrid): string {
+export function reguaParaMolde(medidor: Regua, grid: SceneGrid): MoldeDeMagia {
+  const dx = medidor.x2 - medidor.x;
+  const dy = medidor.y2 - medidor.y;
+  const alcance = Math.hypot(dx, dy);
+  const direcaoGraus = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+  switch (medidor.forma) {
+    case "circulo":
+      return {
+        id: medidor.id,
+        formato: "circulo",
+        origem: { x: medidor.x, y: medidor.y },
+        alcance,
+      };
+    case "cone":
+      return {
+        id: medidor.id,
+        formato: "cone",
+        origem: { x: medidor.x, y: medidor.y },
+        alcance,
+        direcaoGraus,
+        aberturaGraus: aberturaDoCone(medidor),
+      };
+    case "retangulo": {
+      const caixa = caixaDoRetangulo(medidor);
+      return {
+        id: medidor.id,
+        formato: "cubo",
+        origem: {
+          x: caixa.x + caixa.width / 2,
+          y: caixa.y + caixa.height / 2,
+        },
+        alcance: Math.max(caixa.width, caixa.height),
+        largura: caixa.width,
+      };
+    }
+    case "linha":
+    default:
+      return {
+        id: medidor.id,
+        formato: "linha",
+        origem: { x: medidor.x, y: medidor.y },
+        alcance,
+        direcaoGraus,
+        largura: grid.size,
+      };
+  }
+}
+
+/**
+ * O que um medidor mede, em metros, pronto para a etiqueta.
+ * Se houver tokens na cena, detecta quais estão na área de efeito e exibe o número de alvos.
+ */
+export function rotuloDoMedidor(
+  medidor: Regua,
+  grid: SceneGrid,
+  itens?: readonly CanvasItem[],
+): string {
   const metro = grid.size / METROS_POR_QUADRADO;
   const dx = medidor.x2 - medidor.x;
   const dy = medidor.y2 - medidor.y;
   const comprimento = Math.hypot(dx, dy) / metro;
 
+  let base = "";
   switch (medidor.forma) {
     case "linha":
-      return formatarMetros(comprimento);
+      base = formatarMetros(comprimento);
+      break;
     case "circulo":
-      return `r ${formatarMetros(comprimento)} · ${formatarArea(Math.PI * comprimento ** 2)}`;
+      base = `r ${formatarMetros(comprimento)} · ${formatarArea(Math.PI * comprimento ** 2)}`;
+      break;
     case "cone": {
       const abertura = aberturaDoCone(medidor);
       const area = (comprimento ** 2 * ((abertura * Math.PI) / 180)) / 2;
-
-      return `${formatarMetros(comprimento)} · ${abertura}° · ${formatarArea(area)}`;
+      base = `${formatarMetros(comprimento)} · ${abertura}° · ${formatarArea(area)}`;
+      break;
     }
     case "retangulo": {
       const largura = Math.abs(dx) / metro;
       const altura = Math.abs(dy) / metro;
-
-      return `${formatarLado(largura)} × ${formatarMetros(altura)} · ${formatarArea(largura * altura)}`;
+      base = `${formatarLado(largura)} × ${formatarMetros(altura)} · ${formatarArea(largura * altura)}`;
+      break;
     }
   }
+
+  if (itens && itens.length > 0) {
+    const molde = reguaParaMolde(medidor, grid);
+    const atingidos = tokensAtingidos(itens, molde);
+    if (atingidos.length > 0) {
+      return `${base} · ${atingidos.length} ${atingidos.length === 1 ? "alvo" : "alvos"}`;
+    }
+  }
+
+  return base;
 }
 
 /** Metros quadrados: um decimal até 10, inteiro acima, como `formatarMetros`. */

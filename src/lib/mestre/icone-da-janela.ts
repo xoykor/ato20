@@ -14,6 +14,7 @@ import {
   ScrollText,
   SlidersHorizontal,
   SquareUser,
+  Swords,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -58,6 +59,8 @@ export function iconeDaJanela(conteudo: ConteudoJanela): LucideIcon {
       return Layers;
     case "sons":
       return Music;
+    case "iniciativa":
+      return Swords;
     case "personagens":
       return Users;
     case "personagem":

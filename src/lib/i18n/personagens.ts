@@ -198,6 +198,24 @@ const pt = {
     falhouCriar: "Falha ao criar o personagem.",
   },
 
+  compendioSrd: {
+    acao: "Bestiário SRD 5.1",
+    acaoDica:
+      "Catálogo de monstros do System Reference Document 5.1 com criação instantânea de ficha.",
+    titulo: "Compêndio de Criaturas SRD 5.1",
+    subtitulo:
+      "Monstros clássicos com atributos, CA, PV e ataques calculados para o ATO20.",
+    buscar: "Buscar monstro pelo nome, tipo ou ND...",
+    adicionar: "Criar ficha na mesa",
+    criando: "Criando ficha…",
+    criadoComSucesso: (nome: string) => `Criatura ${nome} adicionada com sucesso!`,
+    atributos: "Atributos",
+    acoes: "Ações",
+    nenhumEncontrado: "Nenhum monstro encontrado com esse termo.",
+    atencaoLicenca:
+      "Material oficial sob licença CC-BY-4.0 da Wizards of the Coast LLC.",
+  },
+
   aparencias: {
     titulo: "Aparências",
     criar: "Criar aparência",
@@ -773,6 +791,24 @@ const en: typeof pt = {
     criar: "Create character",
     naoCouberam: (lista) => `Did not fit in the character: ${lista}`,
     falhouCriar: "Failed to create the character.",
+  },
+
+  compendioSrd: {
+    acao: "SRD 5.1 Bestiary",
+    acaoDica:
+      "Monsters catalog from the System Reference Document 5.1 with instant character sheet creation.",
+    titulo: "SRD 5.1 Creature Compendium",
+    subtitulo:
+      "Classic monsters with abilities, AC, HP and attacks pre-calculated for ATO20.",
+    buscar: "Search monster by name, type or CR...",
+    adicionar: "Create sheet on table",
+    criando: "Creating sheet…",
+    criadoComSucesso: (nome: string) => `Creature ${nome} added successfully!`,
+    atributos: "Abilities",
+    acoes: "Actions",
+    nenhumEncontrado: "No monsters found matching your search.",
+    atencaoLicenca:
+      "Official material under CC-BY-4.0 license by Wizards of the Coast LLC.",
   },
 
   aparencias: {

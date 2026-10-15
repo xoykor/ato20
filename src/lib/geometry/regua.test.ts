@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   caixaDoRetangulo,
   formatarArea,
+  reguaParaMolde,
   reguaVazia,
   moverRegua,
   rotuloDoMedidor,
 } from "@/lib/geometry/regua";
-import type { Regua, SceneGrid } from "@/types/scene";
+import type { CanvasItem, Regua, SceneGrid } from "@/types/scene";
 
 /** Um quadrado de 50 unidades: 50 unidades = 1 m. */
 const grid = { size: 50 } as SceneGrid;
@@ -79,5 +80,43 @@ describe("gestos", () => {
       width: 15,
       height: 20,
     });
+  });
+});
+
+describe("alvos atingidos na régua / molde", () => {
+  it("converte régua para molde e detecta alvos na área", () => {
+    const tokens: CanvasItem[] = [
+      {
+        id: "t1",
+        assetId: "a1",
+        x: 20,
+        y: 0,
+        width: 10,
+        height: 10,
+        rotation: 0,
+        z: 0,
+        locked: false,
+      },
+      {
+        id: "t2",
+        assetId: "a2",
+        x: 300,
+        y: 300,
+        width: 10,
+        height: 10,
+        rotation: 0,
+        z: 0,
+        locked: false,
+      },
+    ];
+
+    // Círculo com raio 50 no ponto (0, 0) pega t1, mas não t2
+    const circ = medidor({ forma: "circulo", x: 0, y: 0, x2: 50, y2: 0 });
+    const molde = reguaParaMolde(circ, grid);
+    expect(molde.formato).toBe("circulo");
+    expect(molde.alcance).toBe(50);
+
+    const rotulo = rotuloDoMedidor(circ, grid, tokens);
+    expect(rotulo).toContain("1 alvo");
   });
 });

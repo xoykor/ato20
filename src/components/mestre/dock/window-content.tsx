@@ -12,6 +12,7 @@ import { LayerList } from "@/components/mestre/layer-list";
 import { RetratosWindow } from "@/components/mestre/retratos-window";
 import { ChatBody } from "@/components/mestre/chat-window";
 import { RolagensBody } from "@/components/mestre/rolagens-window";
+import { IniciativaBody } from "@/components/mestre/iniciativa-window";
 import { ArquivosList } from "@/components/mestre/arquivos-list";
 import { SceneList } from "@/components/mestre/scene-list";
 import { useCharacters } from "@/hooks/use-characters";
@@ -61,6 +62,7 @@ export const TELAS_BASE: Array<{ conteudo: ConteudoJanela; titulo: string }> = [
   { conteudo: { tipo: "retratos" }, titulo: t.janelas.retratos },
   { conteudo: { tipo: "camadas" }, titulo: t.janelas.camadas },
   { conteudo: { tipo: "sons" }, titulo: t.janelas.sons },
+  { conteudo: { tipo: "iniciativa" }, titulo: t.janelas.iniciativa },
   { conteudo: { tipo: "personagens" }, titulo: t.janelas.personagens },
   { conteudo: { tipo: "rolagens" }, titulo: t.janelas.rolagens },
   { conteudo: { tipo: "chat" }, titulo: t.janelas.chat },
@@ -170,6 +172,8 @@ export function useRotuloJanela(conteudo: ConteudoJanela): Rotulo {
       return { titulo: t.janelas.retratos };
     case "sons":
       return { titulo: t.janelas.sons };
+    case "iniciativa":
+      return { titulo: t.janelas.iniciativa, subtitulo: t.janelas.iniciativaSub };
     case "camadas":
       return { titulo: t.janelas.camadas };
     case "extensao": {
@@ -319,6 +323,7 @@ const SUBSTITUIVEIS = new Set<ConteudoJanela["tipo"]>([
   "retratos",
   "sons",
   "camadas",
+  "iniciativa",
 ]);
 
 function CorpoDeFabrica({ conteudo }: { conteudo: ConteudoJanela }) {
@@ -380,6 +385,8 @@ function CorpoDeFabrica({ conteudo }: { conteudo: ConteudoJanela }) {
     // Da CAMPANHA: o fio sobrevive à sessão, e mais ainda a trocar de mapa.
     case "chat":
       return <ChatBody />;
+    case "iniciativa":
+      return <IniciativaBody />;
     case "camadas":
       return scene ? (
         <LayerList scene={scene} />

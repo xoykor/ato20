@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  BookOpen,
   FileInput,
   FileUp,
   FolderPlus,
@@ -21,6 +22,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+
+import { CompendioSrdDialog } from "@/components/mestre/compendio-srd-dialog";
 
 import { MiniaturaDoAcervo, useAnimada } from "@/components/mestre/miniatura-do-acervo";
 import {
@@ -381,6 +384,7 @@ export function CharactersBody() {
    */
   const [criando, setCriando] = useState(false);
   const [nomeNovo, setNomeNovo] = useState("");
+  const [compendioAberto, setCompendioAberto] = useState(false);
 
   async function criar() {
     const nome = nomeNovo.trim();
@@ -822,6 +826,23 @@ export function CharactersBody() {
           <TooltipContent>{t.lista.criarPersonagem}</TooltipContent>
         </Tooltip>
 
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 rounded-full"
+                aria-label={t.compendioSrd.acao}
+                onClick={() => setCompendioAberto(true)}
+              >
+                <BookOpen className="size-4" />
+              </Button>
+            }
+          />
+          <TooltipContent>{t.compendioSrd.acao}</TooltipContent>
+        </Tooltip>
+
         {/* Ao lado do +, e não num menu: o retrato é do personagem, e quem
             acabou de criar um é quem vai querer ver onde ele aparece na mesa.
             Abre onde a janela estiver, ou flutuando. Ver `abrirJanela`. */}
@@ -892,6 +913,10 @@ export function CharactersBody() {
           <ContextMenuItem onClick={abrirCriacao}>
             <Plus />
             {t.lista.criarPersonagem}
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => setCompendioAberto(true)}>
+            <BookOpen />
+            {t.compendioSrd.acao}
           </ContextMenuItem>
           <ContextMenuItem onClick={importarFicha.iniciar}>
             <FileInput />
@@ -968,6 +993,15 @@ export function CharactersBody() {
       </Dialog>
 
       {importarFicha.dialogo}
+
+      <CompendioSrdDialog
+        aberto={compendioAberto}
+        onFechar={() => setCompendioAberto(false)}
+        onCriado={(id) => {
+          recarregar();
+          abrir({ tipo: "personagem", personagemId: id });
+        }}
+      />
 
       {/* Pergunta antes, como a lixeira da ficha pergunta -- e pelo mesmo
           motivo: apagar cena ou imagem tem desfazer, isto nao tem. O menu de
