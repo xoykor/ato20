@@ -158,3 +158,7 @@ Permissiva de propósito. O que a licença defenderia aqui é o cenário de algu
 projeto como serviço fechado, e ele não existe: o daemon escuta na rede da casa de quem
 opera, e não há o que hospedar. Copyleft custaria contribuidor e deixaria plugin de
 terceiro em zona cinzenta de obra derivada — justamente o que se quer que apareça.
+
+### System Reference Document (SRD 5.1)
+
+O compêndio de monstros utiliza material do System Reference Document 5.1 ("SRD 5.1") publicado pela Wizards of the Coast LLC sob a licença [Creative Commons Attribution 4.0 International (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/legalcode).

@@ -167,3 +167,7 @@ closed service, and that scenario does not exist: the daemon listens on the home
 whoever runs it, and there is nothing to host. Copyleft would cost contributors and leave
 third-party plugins in the gray zone of derivative work, which is exactly what we want to
 see appear.
+
+### System Reference Document (SRD 5.1)
+
+The monster compendium includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC, licensed under the [Creative Commons Attribution 4.0 International License (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/legalcode).
