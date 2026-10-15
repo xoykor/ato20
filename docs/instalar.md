@@ -3,14 +3,14 @@
 No Linux, o AppImage roda sem instalar nada:
 
 ```bash
-curl -fL -o ato20.AppImage https://github.com/ato20-org/ato20/releases/download/v1.6.0/ato20_1.6.0_amd64.AppImage && chmod +x ato20.AppImage
+curl -fL -o ato20.AppImage https://github.com/ato20-org/ato20/releases/download/v1.6.1/ato20_1.6.1_amd64.AppImage && chmod +x ato20.AppImage
 ./ato20.AppImage
 ```
 
 No Windows, pelo PowerShell:
 
 ```powershell
-wget https://github.com/ato20-org/ato20/releases/download/v1.6.0/ato20_1.6.0_x64-setup.exe -OutFile ato20-setup.exe
+wget https://github.com/ato20-org/ato20/releases/download/v1.6.1/ato20_1.6.1_x64-setup.exe -OutFile ato20-setup.exe
 .\ato20-setup.exe
 ```
 
@@ -19,7 +19,7 @@ e não `-O`. O apelido existe no Windows PowerShell 5.1, que é o que vem na má
 PowerShell 7 ele foi removido; lá o comando é `curl.exe` na mesma forma do Linux:
 
 ```powershell
-curl.exe -fL -o ato20-setup.exe https://github.com/ato20-org/ato20/releases/download/v1.6.0/ato20_1.6.0_x64-setup.exe
+curl.exe -fL -o ato20-setup.exe https://github.com/ato20-org/ato20/releases/download/v1.6.1/ato20_1.6.1_x64-setup.exe
 ```
 
 O `.exe` no final não é enfeite: sem ele o PowerShell 5.1 resolve `curl` para o mesmo

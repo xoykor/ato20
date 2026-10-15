@@ -100,6 +100,27 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.6.1" date="2026-10-15">
+      <description>
+        <p>
+          ATO20 1.6.1 adds Universal VTT map importer, SRD 5.1 monster compendium, 5e spell AoE math templates, and combat initiative engine.
+        </p>
+        <ul>
+          <li>
+            Universal VTT importer: import maps from Dungeondraft or Dungeon Alchemist with walls, doors, lights and image automatically recreated.
+          </li>
+          <li>
+            SRD 5.1 bestiary with direct conversion to character sheets.
+          </li>
+          <li>
+            Spell AoE math templates (cone, cube, circle, line) and token collision detection.
+          </li>
+          <li>
+            Deterministic combat initiative and turn order manager.
+          </li>
+        </ul>
+      </description>
+    </release>
     <release version="1.6.0" date="2026-10-14">
       <description>
         <p>

@@ -71,6 +71,23 @@ export type Versao = {
  */
 export const VERSOES: Versao[] = [
   {
+    versao: "1.6.1",
+    data: "2026-10-15",
+    mudancas: [
+      {
+        tipo: "novidade",
+        titulo: {
+          pt: "Importador Universal VTT (.dd2vtt / .uvtt) e Bestiário SRD 5.1",
+          en: "Universal VTT map importer (.dd2vtt / .uvtt) and SRD 5.1 bestiary",
+        },
+        detalhe: {
+          pt: "Importe mapas do Dungeondraft ou Dungeon Alchemist com paredes, portas, luzes e imagem recriadas automaticamente. Inclui compêndio de criaturas SRD 5.1 com conversão direta para ficha de personagem, moldes matemáticos de magia 5e (cone, cubo, círculo, linha) e motor determinístico de iniciativa e turnos.",
+          en: "Import maps from Dungeondraft or Dungeon Alchemist with walls, doors, lights and image automatically recreated. Includes SRD 5.1 monster compendium with direct character sheet conversion, 5e spell AoE math templates (cone, cube, circle, line) and deterministic combat initiative engine.",
+        },
+      },
+    ],
+  },
+  {
     versao: "1.6.0",
     data: "2026-10-14",
     mudancas: [
