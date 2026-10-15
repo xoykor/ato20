@@ -71,6 +71,23 @@ export type Versao = {
  */
 export const VERSOES: Versao[] = [
   {
+    versao: "1.6.2",
+    data: "2026-10-15",
+    mudancas: [
+      {
+        tipo: "novidade",
+        titulo: {
+          pt: "Interface integrada para Bestiário SRD 5.1, Janela de Iniciativa e Moldes de Magia",
+          en: "Integrated UI for SRD 5.1 Bestiary, Initiative Window and Spell AoE Templates",
+        },
+        detalhe: {
+          pt: "Diálogo visual para pesquisar e criar fichas completas a partir do compêndio SRD 5.1; nova janela nativa de combate e ordem de iniciativa com importação automática de tokens do mapa; e detecção tática de alvos atingidos em tempo real na ferramenta de régua de cena.",
+          en: "Visual dialog to search and create full character sheets from the SRD 5.1 bestiary; new native combat initiative window with automatic map token import; and real-time tactical target detection on the scene ruler tool.",
+        },
+      },
+    ],
+  },
+  {
     versao: "1.6.1",
     data: "2026-10-15",
     mudancas: [

@@ -100,6 +100,24 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.6.2" date="2026-10-15">
+      <description>
+        <p>
+          ATO20 1.6.2 integrates the SRD 5.1 Bestiary, Combat Initiative Window, and Spell AoE target detection into the user interface.
+        </p>
+        <ul>
+          <li>
+            Interactive SRD 5.1 compendium dialog to search and create full monster sheets.
+          </li>
+          <li>
+            Native Combat Initiative Window with turn tracking and automatic token import from scene.
+          </li>
+          <li>
+            Real-time tactical target detection on the scene ruler measuring tool.
+          </li>
+        </ul>
+      </description>
+    </release>
     <release version="1.6.1" date="2026-10-15">
       <description>
         <p>
