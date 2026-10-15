@@ -94,7 +94,10 @@ export function normalizarCorUVTT(raw?: string): string {
 
 /** Decodifica a string Base64 da imagem para bytes Uint8Array. */
 export function decodificarBase64(base64: string): Uint8Array {
-  const limpo = base64.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, "").trim();
+  const limpo = base64
+    .replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, "")
+    .replace(/\s+/g, "")
+    .trim();
   const binario = atob(limpo);
   const len = binario.length;
   const bytes = new Uint8Array(len);
@@ -112,9 +115,9 @@ export function decodificarBase64(base64: string): Uint8Array {
  * A escala multiplicadora é `pixels_per_grid`.
  */
 export function converterUVTTParaCena(doc: UVTTData): ConversaoUVTT {
-  const escala = Math.max(1, doc.resolution.pixels_per_grid || 70);
-  const larguraPx = Math.round(doc.resolution.map_size.x * escala);
-  const alturaPx = Math.round(doc.resolution.map_size.y * escala);
+  const escala = Math.max(1, Math.round(Number(doc.resolution?.pixels_per_grid) || 70));
+  const larguraPx = Math.round(Number(doc.resolution.map_size.x) * escala);
+  const alturaPx = Math.round(Number(doc.resolution.map_size.y) * escala);
 
   const paredes: Parede[] = [];
   const portas: Porta[] = [];

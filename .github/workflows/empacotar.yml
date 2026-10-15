@@ -143,9 +143,6 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # A privada nunca sai dos segredos, e não existe em arquivo nenhum do
-          # repositório. Ver `tauri-plugin-updater` no `Cargo.toml`.
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           releaseId: ${{ needs.versao.outputs.release_id }}
+          includeUpdaterJson: false

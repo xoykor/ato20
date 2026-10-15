@@ -46,6 +46,7 @@ export function pontoNoCone(
   const dy = ponto.y - origem.y;
   const distSq = dx * dx + dy * dy;
 
+  if (alcance <= 0) return false;
   if (distSq > alcance * alcance + EPSILON) return false;
   if (distSq < EPSILON) return true;
 
@@ -155,15 +156,19 @@ export function tokenNoMolde(token: CanvasItem, molde: MoldeDeMagia): boolean {
   // Centro
   if (pontoNoMolde({ x: cx, y: cy }, molde)) return true;
 
-  // Cantos
-  const cantos: Ponto[] = [
+  // Cantos e pontos médios das arestas (para capturar feixes e raios passando pelas bordas)
+  const pontosDeTeste: Ponto[] = [
     { x: token.x, y: token.y },
     { x: token.x + token.width, y: token.y },
     { x: token.x, y: token.y + token.height },
     { x: token.x + token.width, y: token.y + token.height },
+    { x: cx, y: token.y },
+    { x: cx, y: token.y + token.height },
+    { x: token.x, y: cy },
+    { x: token.x + token.width, y: cy },
   ];
 
-  return cantos.some((canto) => pontoNoMolde(canto, molde));
+  return pontosDeTeste.some((p) => pontoNoMolde(p, molde));
 }
 
 /** Filtra os tokens que estão dentro da área de efeito do feitiço. */

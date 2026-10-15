@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MONSTROS_SRD_5E, monstroParaPersonagem } from "./srd-5e";
+import { MONSTROS_SRD_5E, monstroParaPersonagem, obterMonstroPorSlug } from "./srd-5e";
 
 describe("Compêndio SRD 5.1 & Conversor de Personagem", () => {
   it("contém lista básica de monstros com atributos e ações válidas", () => {
@@ -44,4 +44,14 @@ describe("Compêndio SRD 5.1 & Conversor de Personagem", () => {
     const destreza = personagem.atributos!.find((a) => a.sigla === "DES")!;
     expect(destreza.valor).toBe(8);
   });
+
+  it("busca monstros por slug corretamente", () => {
+    const esqueleto = obterMonstroPorSlug("esqueleto");
+    expect(esqueleto).toBeDefined();
+    expect(esqueleto?.name).toBe("Esqueleto");
+
+    const inexistente = obterMonstroPorSlug("beholder");
+    expect(inexistente).toBeUndefined();
+  });
 });
+

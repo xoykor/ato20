@@ -1,3 +1,10 @@
+/**
+ * Este compêndio utiliza material do System Reference Document 5.1 ("SRD 5.1")
+ * publicado pela Wizards of the Coast LLC sob a licença
+ * Creative Commons Attribution 4.0 International (CC-BY-4.0).
+ * https://creativecommons.org/licenses/by/4.0/legalcode
+ */
+
 import { novoId } from "@/lib/id";
 import type { Atributo, Medidor, Personagem } from "@/types/character";
 
@@ -266,4 +273,11 @@ export function monstroParaPersonagem(
     atributos,
     criadoEm: Date.now(),
   };
+}
+
+/**
+ * Busca uma criatura no compêndio SRD 5.1 pelo seu slug único.
+ */
+export function obterMonstroPorSlug(slug: string): SrdCreature | undefined {
+  return MONSTROS_SRD_5E.find((m) => m.slug === slug);
 }

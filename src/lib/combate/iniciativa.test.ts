@@ -4,6 +4,8 @@ import {
   avancarTurno,
   encerrarCombate,
   iniciarCombate,
+  participanteAtivo,
+  participantesOrdenados,
   removerParticipante,
   voltarTurno,
   type ParticipanteDeTurno,
@@ -83,4 +85,17 @@ describe("Motor Lógico de Iniciativa e Combate", () => {
     expect(estado.rodada).toBe(0);
     expect(estado.ordem).toHaveLength(0);
   });
+
+  it("retorna participante ativo e participantes ordenados corretamente", () => {
+    const estado = iniciarCombate([p2, p1]);
+    expect(participanteAtivo(estado)?.id).toBe("heroi-1");
+
+    const ordenados = participantesOrdenados(estado);
+    expect(ordenados.map((p) => p.id)).toEqual(["heroi-1", "monstro-1"]);
+
+    const estadoVazio = encerrarCombate();
+    expect(participanteAtivo(estadoVazio)).toBeNull();
+    expect(participantesOrdenados(estadoVazio)).toEqual([]);
+  });
 });
+

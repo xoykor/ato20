@@ -182,3 +182,21 @@ export function removerParticipante(
 export function encerrarCombate(): EstadoDeCombate {
   return estadoDeCombateVazio();
 }
+
+/** Retorna o participante que está no turno ativo no momento, ou null se não houver. */
+export function participanteAtivo(
+  estado: EstadoDeCombate,
+): ParticipanteDeTurno | null {
+  if (estado.ordem.length === 0 || estado.rodada === 0) return null;
+  const id = estado.ordem[estado.indiceAtivo];
+  return id ? (estado.participantes[id] ?? null) : null;
+}
+
+/** Retorna a lista de participantes na ordem exata de turnos. */
+export function participantesOrdenados(
+  estado: EstadoDeCombate,
+): ParticipanteDeTurno[] {
+  return estado.ordem
+    .map((id) => estado.participantes[id])
+    .filter((p): p is ParticipanteDeTurno => Boolean(p));
+}

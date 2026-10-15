@@ -88,6 +88,7 @@ export function NovoMapaDialog({
       setImportandoUVTT(false);
     };
     reader.readAsText(file);
+    evento.target.value = "";
   }
 
   function semMapa() {
@@ -125,7 +126,12 @@ export function NovoMapaDialog({
             </span>
           </button>
 
-          <label className="hover:bg-accent flex cursor-pointer flex-col items-center gap-2 rounded-lg border p-4 text-center">
+          <label
+            className={cn(
+              "hover:bg-accent flex cursor-pointer flex-col items-center gap-2 rounded-lg border p-4 text-center",
+              (importando || importandoUVTT) && "opacity-60 pointer-events-none cursor-not-allowed",
+            )}
+          >
             <input
               type="file"
               accept=".dd2vtt,.uvtt,.json"

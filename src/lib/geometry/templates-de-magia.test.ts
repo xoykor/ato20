@@ -100,4 +100,10 @@ describe("Moldes de Magia 5e (AoE Templates) e Colisão", () => {
     expect(atingidos).toHaveLength(1);
     expect(atingidos[0]!.id).toBe("token-1");
   });
+
+  it("cone com alcance zero ou negativo retorna false", () => {
+    expect(pontoNoCone({ x: 10, y: 0 }, { x: 0, y: 0 }, 0, 0)).toBe(false);
+    expect(pontoNoCone({ x: 10, y: 0 }, { x: 0, y: 0 }, -50, 0)).toBe(false);
+  });
 });
+
